@@ -4,8 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ENV_MODE=development webpack serve --open --config webpack.config.js",
-    "build": "ENV_MODE=production webpack --config webpack.config.js"
+    "start": "ENV_MODE=development webpack serve --open --config config/webpack.config.js",
+    "build": "ENV_MODE=production webpack --config config/webpack.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
