@@ -1,57 +1,30 @@
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const path = require("path");
-const TerserPlugin = require("terser-webpack-plugin");
-const webpack = require("webpack");
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
-  .BundleAnalyzerPlugin;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
-const walkSync = require("./source-files");
+const walkSync = require('./source-files');
 
-const dir = "src";
+const dir = 'src';
 let getFilesFromDir = {};
 walkSync(dir, function (filePath, stat) {
   getFilesFromDir[filePath.ext]
     ? getFilesFromDir[filePath.ext].push(filePath)
-    : (getFilesFromDir[filePath.ext] = new Array()) &&
-      getFilesFromDir[filePath.ext].push(filePath);
+    : (getFilesFromDir[filePath.ext] = new Array()) && getFilesFromDir[filePath.ext].push(filePath);
 });
-
-
-console.log(getFilesFromDir);
-
-return;
-
-// yapilmasi gereken getFilesFromDir den gelen obj'yi donerek HtmlWebpackPlugin ve entry leri olusturmak
-// alttaki yorumlar ornek olarak yararlanilacak.
-
-// const htmlPlugins = getFilesFromDir(HTML_DIR, [".html"]).map((filePath) => {
-//   const fileName = filePath.replace(HTML_DIR, "");
-//   return new HtmlWebpackPlugin({
-//     chunks: [fileName.replace(path.extname(fileName), ""), "common"],
-//     template: filePath,
-//     filename: fileName,
-//   });
-// });
-
-// const entry = getFilesFromDir(JS_DIR, [".js"]).reduce((obj, filePath) => {
-//   const entryChunkName = filePath
-//     .replace(path.extname(filePath), "")
-//     .replace(JS_DIR, "");
-//   obj[entryChunkName] = `./${filePath}`;
-//   return obj;
-// }, {});
 
 const options = {
   output: {
-    path: path.join(__dirname, "../build"),
-    chunkFilename: "[name].[contenthash].bundle.js",
+    path: path.join(__dirname, '../build'),
+    filename: '[name].[contenthash].bundle.js',
   },
   mode: process.env.ENV_MODE,
-  devServer: process.env.ENV_MODE === "development" ? {} : {},
+  devServer: process.env.ENV_MODE === 'development' ? {} : {},
   optimization:
-    process.env.ENV_MODE === "development"
+    process.env.ENV_MODE === 'development'
       ? {}
       : {
           minimize: true,
@@ -62,7 +35,7 @@ const options = {
                 sourceMap: true,
                 warnings: false,
                 compress: {
-                  drop_console: true,
+                  // drop_console: true,
                   comparisons: false,
                 },
                 parse: {},
@@ -76,7 +49,7 @@ const options = {
           ],
         },
   htmlPlugin:
-    process.env.ENV_MODE === "development"
+    process.env.ENV_MODE === 'development'
       ? {}
       : {
           removeAttributeQuotes: true,
@@ -95,15 +68,33 @@ const options = {
         },
 };
 
+const htmlPlugins = getFilesFromDir.html.map((html) => {
+  return new HtmlWebpackPlugin({
+    chunks: [html.chunks],
+    template: html.filepath,
+    filename: `${html.chunks}.html`,
+    minify: {
+      ...options.htmlPlugin,
+    },
+  });
+});
+
+const entry = getFilesFromDir.js.reduce((obj, js) => {
+  obj[js.chunks] = `./${js.filepath}`;
+  return obj;
+}, {});
+
 module.exports = {
   entry,
-  output: { ...options.output },
+  output: {
+    ...options.output,
+  },
   plugins: [
     // new BundleAnalyzerPlugin(),
     new webpack.ProgressPlugin(),
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({
-      filename: "[name].[hash:4].css",
+      filename: '[name].[contenthash].css',
     }),
     ...htmlPlugins,
   ],
@@ -115,24 +106,24 @@ module.exports = {
         use: [
           // "style-loader",
           MiniCssExtractPlugin.loader,
-          "css-loader",
-          "sass-loader",
+          'css-loader',
+          'sass-loader',
         ],
       },
       // html
       {
         test: /\.html$/i,
-        use: "html-loader",
+        use: 'html-loader',
       },
       // file
       {
         test: /\.(png|jpg|jpe?g|svg|font|woff|ttf|woff2|eot)$/i,
         use: {
-          loader: "file-loader",
+          loader: 'file-loader',
           options: {
-            name: "[name].[ext]",
-            outputPath: "images",
-            publicPath: "images",
+            name: '[name].[ext]',
+            outputPath: 'images',
+            publicPath: 'images',
           },
         },
       },
@@ -141,9 +132,9 @@ module.exports = {
         test: /\.?js$/,
         exclude: /(node_modules|bower_components)/,
         use: {
-          loader: "babel-loader",
+          loader: 'babel-loader',
           options: {
-            presets: ["@babel/preset-env"],
+            presets: ['@babel/preset-env'],
           },
         },
       },
